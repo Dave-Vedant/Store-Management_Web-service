@@ -1,6 +1,6 @@
 from flask import Flask
 from flask_restful import Api
-from flask_jwt import JWT
+from flask_jwt_extended import JWTManager
 
 from security import authenticate, identity
 from resources.user import UserRegister, User
@@ -20,7 +20,7 @@ def create_tables():
     db.create_all()
 
 
-jwt = JWT(app, authenticate, identity)  # /auth
+jwt = JWTManager(app)  # due to jwt manager auth endpiont will not genereate so we need to make it from ourside.
 
 api.add_resource(Store, '/store/<string:name>')
 api.add_resource(StoreList, '/stores')
