@@ -22,6 +22,13 @@ def create_tables():
 
 jwt = JWTManager(app)  # due to jwt manager auth endpiont will not genereate so we need to make it from ourside.
 
+# introduce jwt claim for admin role (to delete)
+@jwt.user_claims_loader
+def claims_to_jwt(identity):
+    if identity == 1:
+        return {'is_admin': True}
+    return {'is_admin': False}
+
 api.add_resource(Store, '/store/<string:name>')
 api.add_resource(StoreList, '/stores')
 api.add_resource(Item, '/item/<string:name>')
