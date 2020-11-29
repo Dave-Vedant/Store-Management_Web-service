@@ -29,6 +29,47 @@ def claims_to_jwt(identity):
         return {'is_admin': True}
     return {'is_admin': False}
 
+# 
+@jwt.expired_token_loader
+def expired_token_callback():
+    return jsonify({
+        'description': 'Hey! Are you there?, The Token has expired.',
+        'error': 'token_expired'
+    }), 401
+
+# when token does not match value
+@jwt.invalid_token_loader
+def invalid_token_callback(error):
+    return jsonify({
+        'description': 'What are you Doing?',
+        'error': 'wrong token value!'
+    }), 401
+
+# unauthorized
+@jwt.unauthorized_loader
+def missing_token_callback(error):
+    return jsonify({
+        'description' : 'Request does not contain an access token.',
+        'error': 'authorization required'
+    }), 401
+
+# when token is not fresh
+@jwt.needs_fresh_token_loader
+def token_not_fresh_callback():
+    return jsonify({
+        'description': 'The token is not fresh',
+        'error': 'fresh token required'
+    }), 401
+
+# token is revoked 
+@jwt.revoked_token_loader
+def revoked_token_callback():
+    return jsonify({
+        'description' : 'The Token has been revoked.',
+        'error' : 'token revoked'
+    }), 401
+
+
 api.add_resource(Store, '/store/<string:name>')
 api.add_resource(StoreList, '/stores')
 api.add_resource(Item, '/item/<string:name>')
