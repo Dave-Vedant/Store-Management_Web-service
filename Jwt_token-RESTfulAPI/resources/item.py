@@ -1,5 +1,5 @@
 from flask_restful import Resource, reqparse
-from flask_jwt_extended import jwt_required, get_jwt_claims
+from flask_jwt_extended import jwt_required, get_jwt_claims, jwt_optional,get_jwt_identity
 from models.item import ItemModel
 
 
@@ -65,5 +65,12 @@ class Item(Resource):
 
 
 class ItemList(Resource):
+    @jwt_optional                                                       # jwt_optional for giving item info without log in authorization.
     def get(self):
-        return {'items': [x.json() for x in ItemModel.find_all()]}
+        user_id = get_jwt_identity()
+        items = [item.json() for item in ItemModel.find_all()]
+        if user_id:
+            return {'item' : items}, 200
+        
+        return {'items': [item['name'] for item in items], 
+                 'message': 'Log in for more information.'}, 200
