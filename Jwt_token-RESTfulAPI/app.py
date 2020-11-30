@@ -1,16 +1,20 @@
 from flask import Flask
 from flask_restful import Api
 from flask_jwt_extended import JWTManager
+from flask import jsonify
 
 from db import db
-from resources.user import UserRegister, User, UserLogin, Token_Refresh
+from resources.user import UserRegister, User, UserLogin, Token_Refresh, UserLogout
 from resources.item import Item, ItemList
 from resources.store import Store, StoreList
+from blacklist import BLACKLIST
 
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///data.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['PROPAGATE_EXCEPTIONS'] = True
+app.config['JWT_BLACK_LIST_ENABLED'] = True
+app.config['JWT_BLACKLIST_TOKEN_CHECKS'] = ['access','refresh']
 app.secret_key = 'dave117' # app.config['JWT_SECREAT_KEY'] # these values use to encrept jwt token
 api = Api(app)
 
@@ -28,6 +32,12 @@ def claims_to_jwt(identity):
     if identity == 1:
         return {'is_admin': True}
     return {'is_admin': False}
+
+# Identify blacklist
+@jwt.token_in_blacklist_loader
+def check_token_blacklist(decrypted_token):
+    return decrypted_token['identity'] in BLACKLIST      
+    # if black list goes to jwt_rewaked. 
 
 # 
 @jwt.expired_token_loader
@@ -77,6 +87,7 @@ api.add_resource(ItemList, '/items')
 api.add_resource(UserRegister, '/register')
 api.add_resource(User, '/user/<int:user_id>')
 api.add_resource(UserLogin, '/login')
+api.add_resource(UserLogout, '/logout')
 api.add_resource(Token_Refresh,'/refresh')
 
 if __name__ == '__main__':

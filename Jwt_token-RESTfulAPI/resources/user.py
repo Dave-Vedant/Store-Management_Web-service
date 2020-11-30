@@ -3,8 +3,11 @@ from werkzeug.security import safe_str_cmp
 from flask_jwt_extended import (create_access_token, 
                                 create_refresh_token, 
                                 jwt_refresh_token_required,
+                                get_jwt_identity,
+                                jwt_required,
                                 get_jwt_identity)
 from models.user import UserModel
+from blacklist import BLACKLIST
 
 _user_parser = reqparse.RequestParser()             # move from userResource class to optimize code, here, "_" represent as private variable so, no one can import by mistake.
 _user_parser.add_argument('username',
@@ -46,6 +49,14 @@ class User(Resource):
             return{'message': 'User not found'}, 404
         user.delete_from_db()
         return {'message': 'User deleted'}, 200
+
+class UserLogout(Resource):
+    @jwt_required 
+    def post(self):
+        jti = get_raw_jwt()['jti']   #jti is jwt id
+        BLACKLIST.add(jti)
+        return {'message' : 'Successfully logout '}, 404
+
 
 class UserLogin(Resource):
     def post(self):
